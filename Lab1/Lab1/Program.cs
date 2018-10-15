@@ -7,74 +7,37 @@ namespace Lab1
         static void Main(string[] args)
         {
             var time = DateTime.Now;
-            var ed1 = new Edition
+            var c1 = new MagazineCollection
             {
-                PublicationDate = time
+                Name = "Test1"
             };
-            var ed2 = new Edition
+            var c2 = new MagazineCollection
             {
-                PublicationDate = time
+                Name = "Test2"
             };
-            Console.WriteLine($"Equals: {ed1.Equals(ed2)}");
-            Console.WriteLine($"Reference: {ReferenceEquals(ed1, ed2)}");
-            Console.WriteLine($"HashCode: {ed1.GetHashCode() == ed2.GetHashCode()}");
+            var l1 = new Listener();
+            var l2 = new Listener();
+            c1.AddDefaults();
+            c2.AddDefaults();
 
-            try
-            {
-                ed1.Circulation = -1;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            c1.MagazineAdded += l1.Report;
+            c1.MagazineReplaced += l1.Report;
+            c2.MagazineAdded += l2.Report;
+            c2.MagazineReplaced += l2.Report;
 
-            var mag = new Magazine();
+            c1.AddMagazines(new Magazine());
+            c1[3] = new Magazine();
+            c1.Replace(4, new Magazine());
+            c1.AddMagazines(new Magazine());
 
-            var articles = new Article[]
-            {
-                new Article
-                {
-                    Name = "1"
-                },
-                new Article
-                {
-                    Rating = 2
-                }
-            };
+            c2[1] = new Magazine();
+            c2.Replace(0, new Magazine());
+            c2.AddMagazines(new Magazine());
+            c2[2] = new Magazine();
 
-            var editors = new Person[]
-            {
-                new Person(),
-                new Person()
-            };
-
-            mag.AddArticles(articles);
-            mag.AddEditors(editors);
-
-            Console.WriteLine(mag);
-
-            Console.WriteLine(mag.Edition.ToString());
-
-            var copy = mag.DeepCopy() as Magazine;
-
-            mag.Name = "test";
-            copy.Name = "copy";
-
-            Console.WriteLine($"Original:{mag.Name}\nCopy:{copy.Name}");
-
-
-            Console.WriteLine("String enumerator: ");
-            foreach(var a in mag.GetArticlesByName("1"))
-            {
-                Console.WriteLine(a);
-            }
-
-
-            Console.WriteLine("Double enumerator: ");
-            foreach (var a in mag.GetRatings(1))
-            {
-                Console.WriteLine(a);
-            }
+            Console.WriteLine(l1);
+            Console.WriteLine();
+            Console.WriteLine(l2);
 
             Console.ReadKey();
         }
