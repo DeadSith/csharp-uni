@@ -28,5 +28,35 @@ namespace Lab1
 
         public override string ToString() => $"Author:{Author}{Environment.NewLine}Name:{Name}"+
             $"{Environment.NewLine}Rating:{Rating}";
+
+        public override bool Equals(object obj)
+        {
+            var article = obj as Article;
+            if (ReferenceEquals(article, null))
+            {
+                return false;
+            }
+            return Author.Equals(article.Author) &&
+                   Name == article.Name &&
+                   Rating == article.Rating;
+        }
+
+        public override int GetHashCode() => HashCode.Combine(Author, Name, Rating);
+
+        public static bool operator ==(Article article1, Article article2)
+        {
+            return article1.Equals(article2);
+        }
+
+        public static bool operator !=(Article article1, Article article2)
+        {
+            return !article1.Equals(article2);
+        }
+
+        public virtual object DeepCopy()
+        {
+            var res = new Article(Author.DeepCopy() as Person, Name, Rating);
+            return res;
+        }
     }
 }

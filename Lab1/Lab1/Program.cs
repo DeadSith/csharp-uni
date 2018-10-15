@@ -6,74 +6,76 @@ namespace Lab1
     {
         static void Main(string[] args)
         {
-            var magazine = new Magazine();
-            Console.WriteLine(magazine.ToShortString());
-            Console.WriteLine($"Weekly:{magazine[Frequency.Weekly]}");
-            Console.WriteLine($"Monthly:{magazine[Frequency.Monthly]}");
-            Console.WriteLine($"Yearly:{magazine[Frequency.Yearly]}");
-            var articles = new[]
+            var time = DateTime.Now;
+            var ed1 = new Edition
             {
-                new Article(),
-                new Article()
+                PublicationDate = time
             };
-            magazine.Articles = articles;
-            magazine.Name = "qwe";
-            magazine.PublicationDate = DateTime.Now;
-            magazine.Frequency = Frequency.Weekly;
-            Console.WriteLine(magazine);
-            magazine.AddArticles(new Article(), new Article());
-            Console.WriteLine(magazine);
-            int rows, columns;
-            var input = Console.ReadLine().Split();
-            rows = int.Parse(input[0]);
-            columns = int.Parse(input[1]);
-            var one = new Article[rows * columns];
-            var two = new Article[rows, columns];
-            var jagged = new Article[rows][];
-            for (var i = 0; i < rows; i++)
+            var ed2 = new Edition
             {
-                jagged[i] = new Article[columns];
-                for (var j = 0; j < columns; j++)
+                PublicationDate = time
+            };
+            Console.WriteLine($"Equals: {ed1.Equals(ed2)}");
+            Console.WriteLine($"Reference: {ReferenceEquals(ed1, ed2)}");
+            Console.WriteLine($"HashCode: {ed1.GetHashCode() == ed2.GetHashCode()}");
+
+            try
+            {
+                ed1.Circulation = -1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            var mag = new Magazine();
+
+            var articles = new Article[]
+            {
+                new Article
                 {
-                    one[i * rows + j] = new Article();
-                    two[i, j] = new Article();
-                    jagged[i][j] = new Article();
-                }
-            }
-            var start = Environment.TickCount;
-
-            for (var i = 0; i < rows*columns; i++)
-            {
-                one[i].Name = "qwe";
-            }
-            var ticks = Environment.TickCount - start;
-
-            Console.WriteLine($"1d:{ticks}");
-            start = Environment.TickCount;
-
-            for (var i = 0; i < rows; i++)
-            {
-                for (var j = 0; j < columns; j++)
+                    Name = "1"
+                },
+                new Article
                 {
-                    two[i, j].Name = "qwe";
+                    Rating = 2
                 }
-            }
+            };
 
-            ticks = Environment.TickCount - start;
-            Console.WriteLine($"2d:{ticks}");
-
-            start = Environment.TickCount;
-
-            for (var i = 0; i < rows; i++)
+            var editors = new Person[]
             {
-                for (var j = 0; j < columns; j++)
-                {
-                    jagged[i][j].Name = "qwe";
-                }
+                new Person(),
+                new Person()
+            };
+
+            mag.AddArticles(articles);
+            mag.AddEditors(editors);
+
+            Console.WriteLine(mag);
+
+            Console.WriteLine(mag.Edition.ToString());
+
+            var copy = mag.DeepCopy() as Magazine;
+
+            mag.Name = "test";
+            copy.Name = "copy";
+
+            Console.WriteLine($"Original:{mag.Name}\nCopy:{copy.Name}");
+
+
+            Console.WriteLine("String enumerator: ");
+            foreach(var a in mag.GetArticlesByName("1"))
+            {
+                Console.WriteLine(a);
             }
 
-            ticks = Environment.TickCount - start;
-            Console.WriteLine($"jagged:{ticks}");
+
+            Console.WriteLine("Double enumerator: ");
+            foreach (var a in mag.GetRatings(1))
+            {
+                Console.WriteLine(a);
+            }
+
             Console.ReadKey();
         }
     }

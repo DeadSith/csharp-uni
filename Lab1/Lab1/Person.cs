@@ -53,5 +53,35 @@ namespace Lab1
         public override string ToString() => $"birthday:{_birthday};name:{_name};surname{_surname}";
 
         public virtual string ToShortString() => $"{_name} {_surname}";
+
+        public override bool Equals(object obj)
+        {
+            var person = obj as Person;
+            if (ReferenceEquals(person, null))
+            {
+                return false;
+            }
+            return person.Birthday == Birthday &&
+                person.Name == Name &&
+                person.Surname == Surname;
+        }
+
+        public override int GetHashCode() => HashCode.Combine(Name, Surname, Birthday);
+
+        public static bool operator==(Person p1, Person p2)
+        {
+            return p1.Equals(p2);
+        }
+
+        public static bool operator!=(Person p1, Person p2)
+        {
+            return !p1.Equals(p2);
+        }
+
+        public virtual object DeepCopy()
+        {
+            var res = new Person(Name, Surname, Birthday);
+            return res;
+        }
     }
 }

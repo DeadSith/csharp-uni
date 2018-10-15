@@ -2,41 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System.Collections;
 
 namespace Lab1
 {
-    public class Magazine
+    public class Magazine: Edition, IRateAndCopy
     {
-        private string _name;
 
         private Frequency _frequency;
 
-        private DateTime _publicationDate;
+        private ArrayList _articles;
 
-        private int _circulation;
-
-        private Article[] _articles;
-
-        public Magazine(string name, Frequency frequency, DateTime publicationDate, Article[] articles)
+        public Magazine(string name, Frequency frequency, DateTime publicationDate,
+            int circulation, ArrayList articles): base(name, publicationDate, circulation)
         {
-            _name = name;
-            _frequency = frequency;
-            _publicationDate = publicationDate;
             _articles = articles;
         }
 
-        public Magazine()
+        public Magazine(): base()
         {
-            _name = "";
-            _articles = new Article[0];
-            _publicationDate = DateTime.Now;
-            _frequency = Frequency.Monthly;
-        }
-
-        public string Name
-        {
-            get => _name;
-            set => _name = value;
+            _articles = new ArrayList();
         }
 
         public Frequency Frequency
@@ -45,41 +30,47 @@ namespace Lab1
             set => _frequency = value;
         }
 
-        public int Circulation
-        {
-            get => _circulation;
-            set => _circulation = value;
-        }
-
-        public DateTime PublicationDate
-        {
-            get => _publicationDate;
-            set => _publicationDate = value;
-        }
-
-        public Article[] Articles
+        public ArrayList Articles
         {
             get => _articles;
             set => _articles = value;
         }
 
+        public ArrayList Editors { get; set; }
+
         public double MediumRating
         {
             get
             {
-                if (_articles.Length == 0)
+                if (_articles.Count == 0)
                     return 0;
-                return _articles.Average(a => a.Rating);
+                var sum = .0;
+                foreach (var article in _articles)
+                {
+                    sum += ((Article)article).Rating;
+                }
+                return sum / _articles.Count;
             }
-        } 
+        }
+
+        public double Rating => MediumRating;
 
         public bool this[Frequency frequency] => _frequency == frequency;
 
         public void AddArticles(params Article[] articles)
         {
-            var size = _articles.Length;
-            Array.Resize(ref _articles, size + articles.Length);
-            Array.Copy(articles, 0, _articles, size, articles.Length);
+            _articles.AddRange(articles);
+        }
+
+        public Edition Edition
+        {
+            get => this;
+            set
+            {
+                Name = value.Name;
+                Circulation = value.Circulation;
+                PublicationDate = value.PublicationDate;
+            }
         }
 
         public override string ToString()
@@ -99,5 +90,86 @@ namespace Lab1
             + $"Frequency:{_frequency}{Environment.NewLine}"
             + $"Publication date: {_publicationDate}{Environment.NewLine}"
             + $"Circulation:{_circulation}{Environment.NewLine}Rating:{MediumRating}";
+
+        public override bool Equals(object obj)
+        {
+            var magazine = obj as Magazine;
+            if (ReferenceEquals(magazine, null))
+            {
+                return false;
+            }
+            return Name == magazine.Name &&
+                   Frequency == magazine.Frequency &&
+                   Circulation == magazine.Circulation &&
+                   PublicationDate == magazine.PublicationDate;
+        }
+
+        public override int GetHashCode() => HashCode.Combine(Name, Frequency, Circulation, PublicationDate);
+
+        public override object DeepCopy()
+        {
+            var res = new Magazine(Name, _frequency, PublicationDate, Circulation, new ArrayList(Articles.Count));
+            foreach(var o in Articles)
+            {
+                var a = o as Article;
+                res.Articles.Add(a.DeepCopy());
+            }
+            var editors = new ArrayList(Editors.Count);
+            foreach (var o in Editors)
+            {
+                var e = o as Person;
+                editors.Add(e.DeepCopy());
+            }
+            res.Editors = editors;
+            return res;
+        }
+
+        public void AddEditors(params Person[] editors)
+        {
+            if (Editors == null)
+            {
+                Editors = new ArrayList(editors);
+            }
+            else
+            {
+                Editors.AddRange(editors);
+            }
+        }
+
+        public IEnumerable<Article> GetRatings(double minRating)
+        {
+            foreach(var o in Articles)
+            {
+                var article = o as Article;
+                if (article == null || article.Rating < minRating)
+                {
+                    continue;
+                }
+                yield return article;
+            }
+        }
+
+        public IEnumerable<Article> GetArticlesByName(string name)
+        {
+            foreach (var o in Articles)
+            {
+                var article = o as Article;
+                if (article == null || !article.Name.Contains(name))
+                {
+                    continue;
+                }
+                yield return article;
+            }
+        }
+
+        public static bool operator ==(Magazine magazine1, Magazine magazine2)
+        {
+            return magazine1.Equals(magazine2);
+        }
+
+        public static bool operator !=(Magazine magazine1, Magazine magazine2)
+        {
+            return !magazine1.Equals(magazine2);
+        }
     }
 }
