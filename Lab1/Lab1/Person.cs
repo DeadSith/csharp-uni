@@ -70,12 +70,12 @@ namespace Lab1
 
         public static bool operator==(Person p1, Person p2)
         {
-            return p1.Equals(p2);
+            return EqualityComparer<Person>.Default.Equals(p1, p2);
         }
 
         public static bool operator!=(Person p1, Person p2)
         {
-            return !p1.Equals(p2);
+            return !(p1 == p2);
         }
 
         public virtual object DeepCopy()

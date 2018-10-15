@@ -45,12 +45,12 @@ namespace Lab1
 
         public static bool operator ==(Article article1, Article article2)
         {
-            return article1.Equals(article2);
+            return EqualityComparer<Article>.Default.Equals(article1, article2);
         }
 
         public static bool operator !=(Article article1, Article article2)
         {
-            return !article1.Equals(article2);
+            return !(article1 == article2);
         }
 
         public virtual object DeepCopy()

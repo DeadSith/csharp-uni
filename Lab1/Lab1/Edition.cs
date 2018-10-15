@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Lab1
 {
-    public class Edition
+    public class Edition: IComparable, IComparer<Edition>
     {
         protected string _name;
 
@@ -58,18 +58,41 @@ namespace Lab1
 
         public static bool operator ==(Edition edition1, Edition edition2)
         {
-            return edition1.Equals(edition2);
+            return EqualityComparer<Edition>.Default.Equals(edition1, edition2);
         }
 
         public static bool operator !=(Edition edition1, Edition edition2)
         {
-            return !edition1.Equals(edition2);
+            return !(edition1 == edition2);
         }
 
         public virtual object DeepCopy()
         {
             var res = new Edition(Name, PublicationDate, Circulation);
             return res;
+        }
+
+        public int CompareTo(object obj)
+        {
+            var edition = obj as Edition;
+            if (edition == null || Name == null)
+            {
+                return -1;
+            }
+            return Name.CompareTo(edition.Name);
+        }
+
+        public int Compare(Edition x, Edition y)
+        {
+            if (x == null)
+            {
+                return -1;
+            }
+            if (y == null)
+            {
+                return 1;
+            }
+            return x.PublicationDate.CompareTo(y.PublicationDate);
         }
     }
 }

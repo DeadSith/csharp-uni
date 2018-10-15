@@ -11,17 +11,17 @@ namespace Lab1
 
         private Frequency _frequency;
 
-        private ArrayList _articles;
+        private List<Article> _articles;
 
         public Magazine(string name, Frequency frequency, DateTime publicationDate,
-            int circulation, ArrayList articles): base(name, publicationDate, circulation)
+            int circulation, List<Article> articles): base(name, publicationDate, circulation)
         {
             _articles = articles;
         }
 
         public Magazine(): base()
         {
-            _articles = new ArrayList();
+            _articles = new List<Article>();
         }
 
         public Frequency Frequency
@@ -30,13 +30,13 @@ namespace Lab1
             set => _frequency = value;
         }
 
-        public ArrayList Articles
+        public List<Article> Articles
         {
             get => _articles;
             set => _articles = value;
         }
 
-        public ArrayList Editors { get; set; }
+        public List<Person> Editors { get; set; }
 
         public double MediumRating
         {
@@ -104,21 +104,20 @@ namespace Lab1
                    PublicationDate == magazine.PublicationDate;
         }
 
-        public override int GetHashCode() => HashCode.Combine(Name, Frequency, Circulation, PublicationDate);
 
         public override object DeepCopy()
         {
-            var res = new Magazine(Name, _frequency, PublicationDate, Circulation, new ArrayList(Articles.Count));
+            var res = new Magazine(Name, _frequency, PublicationDate, Circulation, new List<Article>(Articles.Count));
             foreach(var o in Articles)
             {
                 var a = o as Article;
-                res.Articles.Add(a.DeepCopy());
+                res.Articles.Add(a.DeepCopy() as Article);
             }
-            var editors = new ArrayList(Editors.Count);
+            var editors = new List<Person>(Editors.Count);
             foreach (var o in Editors)
             {
                 var e = o as Person;
-                editors.Add(e.DeepCopy());
+                editors.Add(e.DeepCopy() as Person);
             }
             res.Editors = editors;
             return res;
@@ -128,7 +127,7 @@ namespace Lab1
         {
             if (Editors == null)
             {
-                Editors = new ArrayList(editors);
+                Editors = new List<Person>(editors);
             }
             else
             {
@@ -162,14 +161,16 @@ namespace Lab1
             }
         }
 
+        public override int GetHashCode() => HashCode.Combine(Frequency, Name, PublicationDate, Circulation);
+
         public static bool operator ==(Magazine magazine1, Magazine magazine2)
         {
-            return magazine1.Equals(magazine2);
+            return EqualityComparer<Magazine>.Default.Equals(magazine1, magazine2);
         }
 
         public static bool operator !=(Magazine magazine1, Magazine magazine2)
         {
-            return !magazine1.Equals(magazine2);
+            return !(magazine1 == magazine2);
         }
     }
 }
