@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Lab1
 {
+    [Serializable]
     public class Person
     {
         public Person(string name, string surname, DateTime birthday)

@@ -3,38 +3,30 @@ using System.Collections.Generic;
 using System.Text;
 using System.Linq;
 using System.Collections;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using System.Globalization;
 
 namespace Lab1
 {
-    public class Magazine: Edition, IRateAndCopy
+    [Serializable]
+    public class Magazine: Edition, IRateAndCopy<Magazine>
     {
-
-        private Frequency _frequency;
-
-        private List<Article> _articles;
-
         public Magazine(string name, Frequency frequency, DateTime publicationDate,
             int circulation, List<Article> articles): base(name, publicationDate, circulation)
         {
-            _articles = articles;
+            Articles = articles;
         }
 
         public Magazine(): base()
         {
-            _articles = new List<Article>();
+            Articles = new List<Article>();
         }
 
-        public Frequency Frequency
-        {
-            get => _frequency;
-            set => _frequency = value;
-        }
+        public Frequency Frequency { get; set; }
 
-        public List<Article> Articles
-        {
-            get => _articles;
-            set => _articles = value;
-        }
+        public List<Article> Articles { get; set; }
 
         public List<Person> Editors { get; set; }
 
@@ -42,24 +34,24 @@ namespace Lab1
         {
             get
             {
-                if (_articles.Count == 0)
+                if (Articles.Count == 0)
                     return 0;
                 var sum = .0;
-                foreach (var article in _articles)
+                foreach (var article in Articles)
                 {
                     sum += ((Article)article).Rating;
                 }
-                return sum / _articles.Count;
+                return sum / Articles.Count;
             }
         }
 
         public double Rating => MediumRating;
 
-        public bool this[Frequency frequency] => _frequency == frequency;
+        public bool this[Frequency frequency] => Frequency == frequency;
 
         public void AddArticles(params Article[] articles)
         {
-            _articles.AddRange(articles);
+            Articles.AddRange(articles);
         }
 
         public Edition Edition
@@ -76,18 +68,18 @@ namespace Lab1
         public override string ToString()
         {
             var sb = new StringBuilder();
-            foreach (var article in _articles)
+            foreach (var article in Articles)
             {
                 sb.Append($"Article:{article}{Environment.NewLine}{Environment.NewLine}");
             }
 
-            return $"Name:{_name}{Environment.NewLine}Frequency:{_frequency}{Environment.NewLine}"
+            return $"Name:{_name}{Environment.NewLine}Frequency:{Frequency}{Environment.NewLine}"
                 + $"Publication date: {_publicationDate}{Environment.NewLine}{Environment.NewLine}"
                 + $"Circulation:{_circulation}{Environment.NewLine}Articles:{Environment.NewLine}{sb}";
         }
 
         public virtual string ToShortString() => $"Name:{_name}{Environment.NewLine}"
-            + $"Frequency:{_frequency}{Environment.NewLine}"
+            + $"Frequency:{Frequency}{Environment.NewLine}"
             + $"Publication date: {_publicationDate}{Environment.NewLine}"
             + $"Circulation:{_circulation}{Environment.NewLine}Rating:{MediumRating}";
 
@@ -105,22 +97,17 @@ namespace Lab1
         }
 
 
-        public override object DeepCopy()
+        public Magazine DeepCopy()
         {
-            var res = new Magazine(Name, _frequency, PublicationDate, Circulation, new List<Article>(Articles.Count));
-            foreach(var o in Articles)
+            Magazine result;
+            using (var stream = new MemoryStream())
             {
-                var a = o as Article;
-                res.Articles.Add(a.DeepCopy() as Article);
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(stream, this);
+                stream.Position = 0;
+                result = formatter.Deserialize(stream) as Magazine;
             }
-            var editors = new List<Person>(Editors.Count);
-            foreach (var o in Editors)
-            {
-                var e = o as Person;
-                editors.Add(e.DeepCopy() as Person);
-            }
-            res.Editors = editors;
-            return res;
+            return result;
         }
 
         public void AddEditors(params Person[] editors)
@@ -171,6 +158,89 @@ namespace Lab1
         public static bool operator !=(Magazine magazine1, Magazine magazine2)
         {
             return !(magazine1 == magazine2);
+        }
+
+        public bool Save(string fileName)
+        {
+            using (var stream = File.Open(fileName, FileMode.Create))
+            {
+                try
+                {
+
+                    var formatter = new BinaryFormatter();
+                    formatter.Serialize(stream, this);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool Load(string fileName)
+        {
+            using (var stream = File.Open(fileName, FileMode.Open))
+            {
+                try
+                {
+
+                    var formatter = new BinaryFormatter();
+                    var result = formatter.Deserialize(stream) as Magazine;
+                    if (result == null)
+                    {
+                        return false;
+                    }
+                    Edition = result.Edition;
+                    Editors = result.Editors;
+                    Frequency = result.Frequency;
+                    Articles = result.Articles;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool AddFromConsole()
+        {
+            try
+            {
+                Console.WriteLine($"String format:{Environment.NewLine}" +
+                    "<article_name>;<author_name> <author_surname> <dd.mm.yyyy date>;<rating.rating>");
+                var input = Console.ReadLine().Split(';');
+                if (input.Length != 3)
+                {
+                    return false;
+                }
+                var personData = input[1].Split(' ');
+                if (personData.Length != 3)
+                {
+                    return false;
+                }
+                var date = DateTime.ParseExact(personData[2], "dd.mm.yyyy", CultureInfo.InvariantCulture);
+                var rating = double.Parse(input[2], CultureInfo.InvariantCulture);
+                var author = new Person(personData[0], personData[1], date);
+                var article = new Article(author, input[0], rating);
+                Articles.Add(article);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool Save(string fileName, Magazine magazine)
+        {
+            return magazine.Save(fileName);
+        }
+
+        public static bool Load(string fileName, Magazine magazine)
+        {
+            return magazine.Load(fileName);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace Lab1
 {
@@ -6,38 +7,65 @@ namespace Lab1
     {
         static void Main(string[] args)
         {
-            var time = DateTime.Now;
-            var c1 = new MagazineCollection
+            var magazine = new Magazine
             {
-                Name = "Test1"
+                Name = "test"
             };
-            var c2 = new MagazineCollection
+
+            var copy = magazine.DeepCopy();
+            copy.Name = "Copy";
+
+            Console.WriteLine($"Original:{Environment.NewLine}{magazine}"
+                + $"{Environment.NewLine}Copy:{Environment.NewLine}{copy}");
+
+            Console.Write("Enter file name: ");
+            var filename = Console.ReadLine();
+
+            string directory = "WrongPath";
+
+            try
             {
-                Name = "Test2"
-            };
-            var l1 = new Listener();
-            var l2 = new Listener();
-            c1.AddDefaults();
-            c2.AddDefaults();
+                directory = Path.GetDirectoryName(filename);
+            }
+            catch
+            {
+                Console.WriteLine("Input is not correct path");
+            }
 
-            c1.MagazineAdded += l1.Report;
-            c1.MagazineReplaced += l1.Report;
-            c2.MagazineAdded += l2.Report;
-            c2.MagazineReplaced += l2.Report;
+            while (directory == "WrongPath" || !Directory.Exists(directory))
+            {
+                Console.WriteLine("Directory does not exist");
+                Console.Write("Enter file name: ");
+                filename = Console.ReadLine();
+                try
+                {
+                    directory = Path.GetDirectoryName(filename);
+                }
+                catch
+                {
+                    Console.WriteLine("Input is not correct path");
+                }
+            }
 
-            c1.AddMagazines(new Magazine());
-            c1[3] = new Magazine();
-            c1.Replace(4, new Magazine());
-            c1.AddMagazines(new Magazine());
+            if (File.Exists(filename))
+            {
+                magazine.Load(filename);
+            }
+            else
+            {
+                Console.WriteLine("New file will be created");
+            }
 
-            c2[1] = new Magazine();
-            c2.Replace(0, new Magazine());
-            c2.AddMagazines(new Magazine());
-            c2[2] = new Magazine();
+            Console.WriteLine(magazine);
 
-            Console.WriteLine(l1);
-            Console.WriteLine();
-            Console.WriteLine(l2);
+            magazine.AddFromConsole();
+
+            magazine.Save(filename);
+
+            Magazine.Load(filename, magazine);
+            magazine.AddFromConsole();
+            Magazine.Save(filename, magazine);
+            Console.WriteLine(magazine);
 
             Console.ReadKey();
         }

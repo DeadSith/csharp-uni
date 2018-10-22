@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Lab1
 {
+    [Serializable]
     public class Edition: IComparable, IComparer<Edition>
     {
         protected string _name;
@@ -64,12 +65,6 @@ namespace Lab1
         public static bool operator !=(Edition edition1, Edition edition2)
         {
             return !(edition1 == edition2);
-        }
-
-        public virtual object DeepCopy()
-        {
-            var res = new Edition(Name, PublicationDate, Circulation);
-            return res;
         }
 
         public int CompareTo(object obj)

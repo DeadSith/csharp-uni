@@ -4,10 +4,10 @@ using System.Text;
 
 namespace Lab1
 {
-    public interface IRateAndCopy
+    public interface IRateAndCopy<T>
     {
         double Rating { get; }
 
-        object DeepCopy();
+        T DeepCopy();
     }
 }
