@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Lab1
 {
@@ -27,7 +26,7 @@ namespace Lab1
             Rating = 0;
         }
 
-        public override string ToString() => $"Author:{Author}{Environment.NewLine}Name:{Name}"+
+        public override string ToString() => $"Author:{Author}{Environment.NewLine}Name:{Name}" +
             $"{Environment.NewLine}Rating:{Rating}";
 
         public override bool Equals(object obj)

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Linq;
+using System.Text;
 
 namespace Lab1
 {
@@ -47,7 +47,7 @@ namespace Lab1
         public void AddMagazines(params Magazine[] magazines)
         {
             var handler = MagazineAdded;
-            foreach(var magazine in magazines)
+            foreach (var magazine in magazines)
             {
                 _magazines.Add(magazine);
                 handler?.Invoke(this, new MagazineListHandlerEventArgs(Name, "Added", _magazines.Count));
@@ -76,20 +76,11 @@ namespace Lab1
             return sb.ToString();
         }
 
-        public void SortByName()
-        {
-            _magazines.Sort();
-        }
+        public void SortByName() => _magazines.Sort();
 
-        public void SortByDate()
-        {
-            _magazines.Sort(new Edition());
-        }
+        public void SortByDate() => _magazines.Sort(new Edition());
 
-        public void SortByCirculation()
-        {
-            _magazines.Sort(new EditionCirculationComparer());
-        }
+        public void SortByCirculation() => _magazines.Sort(new EditionCirculationComparer());
 
         public Magazine this[int index]
         {

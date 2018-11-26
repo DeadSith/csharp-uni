@@ -13,10 +13,7 @@ namespace Lab1
 
         public List<ListEntry> Changes { get; }
 
-        public void Report(object source, MagazineListHandlerEventArgs args)
-        {
-            Changes.Add(new ListEntry(args.CollectionName, args.ChangeType, args.ElementIndex));
-        }
+        public void Report(object source, MagazineListHandlerEventArgs args) => Changes.Add(new ListEntry(args.CollectionName, args.ChangeType, args.ElementIndex));
 
         public override string ToString()
         {

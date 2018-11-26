@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Lab1
 {
-    public class MagazineListHandlerEventArgs: EventArgs
+    public class MagazineListHandlerEventArgs : EventArgs
     {
         public MagazineListHandlerEventArgs(string collectionName, string changeType, int elementIndex)
         {

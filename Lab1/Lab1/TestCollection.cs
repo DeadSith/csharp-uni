@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Lab1
 {
     public class TestCollection
     {
-        private List<Edition> _editions;
+        private readonly List<Edition> _editions;
 
-        private List<string> _keys;
+        private readonly List<string> _keys;
 
-        private Dictionary<string, Magazine> _stringDictionary;
+        private readonly Dictionary<string, Magazine> _stringDictionary;
 
-        private Dictionary<Edition, Magazine> _typeDictionary;
+        private readonly Dictionary<Edition, Magazine> _typeDictionary;
 
         public TestCollection(int count)
         {

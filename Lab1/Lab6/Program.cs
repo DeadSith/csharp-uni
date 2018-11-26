@@ -1,80 +1,127 @@
-﻿using System;
+﻿using Lab6.Humans;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Lab6
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
-        {
-            ConsoleLoop();
-        }
+        private static readonly Random Random = new Random();
 
-        static void ConsoleLoop()
+        private static void Main(string[] args) => ConsoleLoop();
+
+        private static void ConsoleLoop()
         {
-            Console.WriteLine("Натисніть Q або F10 щоб закрити консоль.");
-            Console.WriteLine("Введіть клас та ім'я розділені пробілом.");
-            Human first = null;
-            Human second = null;
-            var sb = new StringBuilder();
+            Console.OutputEncoding = Encoding.UTF8;
+            if (DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Консоль не працює по неділям!");
+                Console.ReadKey();
+                return;
+            }
+            PrintHelp();
+            Human first;
+            Human second;
             var input = Console.ReadKey();
             while (input.Key != ConsoleKey.F10 && input.Key != ConsoleKey.Q)
             {
                 if (input.Key == ConsoleKey.Enter)
                 {
-                    if (first == null)
+                    (first, second) = GeneratePair();
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Перша особа: {first}");
+                    Console.WriteLine($"Друга особа: {second}");
+
+                    try
                     {
-                        if (!TryParseInput(sb.ToString(), out first))
-                        {
-                            Console.WriteLine("Дані введено в неправильному форматі.");
-                        }
-                        Console.WriteLine();
-                    }
-                    else
-                    {
-                        if (!TryParseInput(sb.ToString(), out second))
-                        {
-                            Console.WriteLine("Дані введено в неправильному форматі.");
-                        }
-                        Console.WriteLine();
-                        first = null;
                         var (log, result) = Couple(first, second);
+                        if (result == null)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                        }
                         foreach (var entry in log)
                         {
                             Console.WriteLine(entry);
                         }
-                        //process result
+
+                        if (result != null)
+                        {
+                            PrintResult(result);
+                        }
                     }
-                    sb.Clear();
+                    catch (GenderException e)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine(e.Message);
+                    }
+
+                    Console.ResetColor();
+                    Console.WriteLine("\n\n");
+                    PrintHelp();
+                    input = Console.ReadKey();
                 }
-                else
-                {
-                    sb.Append(input.KeyChar);
-                }
-                input = Console.ReadKey();
             }
         }
 
-        static (IEnumerable<string>, IHasName) Couple(Human h1, Human h2)
+        private static void PrintHelp()
         {
+            Console.WriteLine("Натисніть Q або F10 щоб закрити консоль.");
+            Console.WriteLine("Натисніть Enter щоб вивести наступну пару.");
+        }
+
+        private static void PrintResult(IHasName result)
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
+            var resultType = result.GetType();
+            Console.WriteLine($"Тип результату: {resultType}.\nІм'я: {result.Name}");
+        }
+
+        private static bool CheckLikes(double probability) => Random.NextDouble() < probability;
+
+        private static (IEnumerable<string>, IHasName) Couple(Human h1, Human h2)
+        {
+            var femCount = 0;
             var firstType = h1.GetType();
             var secondType = h2.GetType();
+            if (firstType.Name.Contains("Girl"))
+            {
+                femCount++;
+            }
+
+            if (secondType.Name.Contains("Girl"))
+            {
+                femCount++;
+            }
+
+            if (femCount == 0)
+            {
+                throw new GenderException("Пара містить лише чоловіків.");
+            }
+
+            if (femCount == 2)
+            {
+                throw new GenderException("Пара містить лише жінок.");
+            }
+
             var firstAttributes = (CoupleAttribute[])Attribute.GetCustomAttributes(firstType, typeof(CoupleAttribute));
-            var firstMatch = firstAttributes.FirstOrDefault(attribute => attribute.ChildType == secondType.Name);
+            var firstMatch = firstAttributes.FirstOrDefault(attribute => attribute.Pair == secondType.Name);
             var messages = new List<string>();
 
             if (firstMatch == null)
             {
-                messages.Add("Suitable child type not found");
+                messages.Add("Не знайдено підходящий тип нащадку");
                 return (messages, null);
             }
 
-            var firstLikes = new Random().NextDouble() <= firstMatch.Probability;
-            if (firstLikes)
+            if (CheckLikes(firstMatch.Probability))
             {
                 messages.Add("Першій особі подобається друга.");
             }
@@ -84,16 +131,15 @@ namespace Lab6
             }
 
             var secondAttributes = (CoupleAttribute[])Attribute.GetCustomAttributes(secondType, typeof(CoupleAttribute));
-            var secondMatch = secondAttributes.FirstOrDefault(attribute => attribute.ChildType == firstType.Name);
+            var secondMatch = secondAttributes.FirstOrDefault(attribute => attribute.Pair == firstType.Name);
 
             if (secondMatch == null)
             {
-                messages.Add("Suitable child type not found");
+                messages.Add("Не знайдено підходящий тип нащадку");
                 return (messages, null);
             }
 
-            var secondLikes = new Random().NextDouble() <= secondMatch.Probability;
-            if (secondLikes)
+            if (CheckLikes(secondMatch.Probability))
             {
                 messages.Add("Другій особі подобається перша.");
             }
@@ -105,22 +151,101 @@ namespace Lab6
 
             try
             {
-                var method = secondType.GetMethods().FirstOrDefault(m => m.ReturnType == typeof(string));
-                if (method == null)
+                name = GetName(h2);
+                if (name == null)
                 {
-                    messages.Add("Suitable Name method not found");
+                    messages.Add("Не знайдено підходящий метод для імені");
                     return (messages, null);
                 }
-
-                name = method.Invoke(h2, null) as string;
             }
             catch (TargetParameterCountException)
             {
-                messages.Add("Wrong number of arguments.");
+                messages.Add("Неправильна кількість аргументів.");
                 return (messages, null);
             }
 
-            var childType = Type.GetType(firstMatch.ChildType);
+            var child = CreateChild(firstMatch.ChildType, name);
+            if (child == null)
+            {
+                messages.Add("Не знайдено сеттеру для імені.");
+                return (messages, null);
+            }
+
+            var parName = h1.Name;
+            if (firstType.Name.Contains("Girl"))
+            {
+                parName = GenerateParName(name);
+            }
+
+            SetParentalName(child, parName);
+
+            return (messages, child);
+        }
+
+        private static Human GenerateMale()
+        {
+            var value = Random.NextDouble();
+            Human result;
+            if (value < 0.5)
+            {
+                result = new Botan();
+            }
+            else
+            {
+                result = new Student();
+            }
+            result.Name = RandomString(Random.Next(5, 15));
+            return result;
+        }
+
+        private static Human GenerateFemale()
+        {
+            var value = Random.NextDouble();
+            Human result;
+            if (value < 0.33)
+            {
+                result = new Girl();
+            }
+            else if (value < 0.66)
+            {
+                result = new PrettyGirl();
+            }
+            else
+            {
+                result = new SmartGirl();
+            }
+
+            result.Name = RandomString(Random.Next(5, 15));
+            return result;
+        }
+
+        private static (Human, Human) GeneratePair()
+        {
+            Human h1, h2;
+            if (Random.NextDouble() < 0.75)
+            {
+                h1 = GenerateMale();
+            }
+            else
+            {
+                h1 = GenerateFemale();
+            }
+
+            if (Random.NextDouble() < 0.75)
+            {
+                h2 = GenerateFemale();
+            }
+            else
+            {
+                h2 = GenerateMale();
+            }
+
+            return (h1, h2);
+        }
+
+        private static IHasName CreateChild(string childTypeName, string name)
+        {
+            var childType = Type.GetType($"Lab6.Humans.{childTypeName}");
             var child = (IHasName)Activator.CreateInstance(childType);
             var nameProp = childType.GetProperty("Name");
             if (nameProp.CanWrite)
@@ -129,53 +254,40 @@ namespace Lab6
             }
             else
             {
-                messages.Add("No setter for name was found");
-                return (messages, null);
+                return null;
             }
 
-            var parName = childType.GetProperty("ParentalName");
+            return child;
+        }
+
+        private static void SetParentalName(IHasName child, string name)
+        {
+            var parName = child.GetType().GetProperty("ParentalName");
             if (parName != null && parName.CanWrite)
             {
-                if (firstType.Name.Contains("Girl"))
-                {
-                    parName.SetValue(child, GenerateParName(name));
-                }
-                else
-                {
-                    parName.SetValue(child, h1.Name);
-                }
+                parName.SetValue(child, name);
             }
-
-            return (messages, child);
         }
 
-        static bool TryParseInput(string input, out Human h)
+        private static string GetName(Human human)
         {
-            h = null;
-            var fields = input.Split(' ');
-            if (fields.Length != 2)
+            var method = human.GetType().GetMethods().FirstOrDefault(m => m.ReturnType == typeof(string));
+            if (method == null)
             {
-                return false;
-            }
-            var type = Type.GetType(fields[0]);
-            if (type == null)
-            {
-                return false;
+                return null;
             }
 
-            h = Activator.CreateInstance(type) as Human;
-            if (h == null)
-            {
-                return false;
-            }
-
-            h.Name = fields[1];
-            return true;
+            return (method.Invoke(human, null) as string);
         }
 
-        static string GenerateParName(string name)
+        private static string RandomString(int length)
         {
-            return name + "овна";
+            const string chars = "абвгдеєжзиіїйклмнопрстуфхцчшщюя";
+            var a = char.ToUpper(chars[Random.Next(chars.Length)]);
+            return a + new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
+
+        private static string GenerateParName(string name) => name + "овна";
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Lab1
 {
     [Serializable]
-    public class Edition: IComparable, IComparer<Edition>
+    public class Edition : IComparable, IComparer<Edition>
     {
         protected string _name;
 
@@ -15,7 +14,10 @@ namespace Lab1
 
         public string Name { get => _name; set => _name = value; }
         public DateTime PublicationDate { get => _publicationDate; set => _publicationDate = value; }
-        public int Circulation { get => _circulation;
+
+        public int Circulation
+        {
+            get => _circulation;
             set
             {
                 if (value < 0)
@@ -53,6 +55,7 @@ namespace Lab1
         }
 
         public override int GetHashCode() => HashCode.Combine(_name, _publicationDate, _circulation);
+
         public override string ToString() => $"Name:{_name}{Environment.NewLine}"
             + $"Publication date: {_publicationDate}{Environment.NewLine}"
             + $"Circulation:{_circulation}{Environment.NewLine}";

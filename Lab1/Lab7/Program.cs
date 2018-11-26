@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Lab7
 {
-    class Program
+    internal class Program
     {
-        static async Task Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Console.WriteLine("Hello World!");
             Console.WriteLine("Enter directory to calculate size: ");
@@ -17,7 +17,7 @@ namespace Lab7
             Console.ReadKey();
         }
 
-        static async Task<long> GetDirectorySize(string path)
+        private static async Task<long> GetDirectorySize(string path)
         {
             try
             {
@@ -34,7 +34,6 @@ namespace Lab7
                 Console.WriteLine(e);
                 return 0;
             }
-            
         }
     }
 }

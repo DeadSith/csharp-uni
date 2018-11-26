@@ -5,6 +5,5 @@
     [Couple(Pair = "SmartGirl", ChildType = "Book", Probability = 0.8)]
     public class Botan : Human
     {
-        
     }
 }

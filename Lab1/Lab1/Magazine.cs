@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using System.Collections;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 
 namespace Lab1
 {
     [Serializable]
-    public class Magazine: Edition, IRateAndCopy<Magazine>
+    public class Magazine : Edition, IRateAndCopy<Magazine>
     {
         public Magazine(string name, Frequency frequency, DateTime publicationDate,
-            int circulation, List<Article> articles): base(name, publicationDate, circulation)
+            int circulation, List<Article> articles) : base(name, publicationDate, circulation)
         {
             Articles = articles;
         }
 
-        public Magazine(): base()
+        public Magazine() : base()
         {
             Articles = new List<Article>();
         }
@@ -39,7 +36,7 @@ namespace Lab1
                 var sum = .0;
                 foreach (var article in Articles)
                 {
-                    sum += ((Article)article).Rating;
+                    sum += article.Rating;
                 }
                 return sum / Articles.Count;
             }
@@ -49,10 +46,7 @@ namespace Lab1
 
         public bool this[Frequency frequency] => Frequency == frequency;
 
-        public void AddArticles(params Article[] articles)
-        {
-            Articles.AddRange(articles);
-        }
+        public void AddArticles(params Article[] articles) => Articles.AddRange(articles);
 
         public Edition Edition
         {
@@ -96,7 +90,6 @@ namespace Lab1
                    PublicationDate == magazine.PublicationDate;
         }
 
-
         public Magazine DeepCopy()
         {
             Magazine result;
@@ -124,7 +117,7 @@ namespace Lab1
 
         public IEnumerable<Article> GetRatings(double minRating)
         {
-            foreach(var o in Articles)
+            foreach (var o in Articles)
             {
                 var article = o as Article;
                 if (article == null || article.Rating < minRating)
@@ -166,7 +159,6 @@ namespace Lab1
             {
                 try
                 {
-
                     var formatter = new BinaryFormatter();
                     formatter.Serialize(stream, this);
                     return true;
@@ -184,7 +176,6 @@ namespace Lab1
             {
                 try
                 {
-
                     var formatter = new BinaryFormatter();
                     var result = formatter.Deserialize(stream) as Magazine;
                     if (result == null)
@@ -233,14 +224,8 @@ namespace Lab1
             }
         }
 
-        public static bool Save(string fileName, Magazine magazine)
-        {
-            return magazine.Save(fileName);
-        }
+        public static bool Save(string fileName, Magazine magazine) => magazine.Save(fileName);
 
-        public static bool Load(string fileName, Magazine magazine)
-        {
-            return magazine.Load(fileName);
-        }
+        public static bool Load(string fileName, Magazine magazine) => magazine.Load(fileName);
     }
 }

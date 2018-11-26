@@ -1,4 +1,4 @@
-﻿namespace Lab6
+﻿namespace Lab6.Humans
 {
     public class Book : IHasName
     {

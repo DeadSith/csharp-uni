@@ -3,9 +3,9 @@ using System.IO;
 
 namespace Lab1
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var magazine = new Magazine
             {
@@ -21,7 +21,7 @@ namespace Lab1
             Console.Write("Enter file name: ");
             var filename = Console.ReadLine();
 
-            string directory = "WrongPath";
+            var directory = "WrongPath";
 
             try
             {
